@@ -1,0 +1,203 @@
+// Create a new file called api-test.html with this content
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie API Tester</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Movie API Tester</h1>
+
+    <div>
+        <h2>API Base URL</h2>
+        <input type="text" id="baseUrl" value="http://movie-backend.test" style="width: 300px;">
+    </div>
+
+    <div>
+        <h2>Auth Token</h2>
+        <input type="text" id="authToken" placeholder="Enter auth token" style="width: 500px;">
+        <button onclick="loadFromLocalStorage()">Load from localStorage</button>
+    </div>
+
+    <div>
+        <h2>Test API Endpoints</h2>
+        <button onclick="testPublicEndpoint()">Test Public Endpoint</button>
+        <button onclick="testMoviesEndpoint()">Test Movies Endpoint</button>
+        <button onclick="testMoviesTestEndpoint()">Test Movies-Test Endpoint</button>
+        <button onclick="testAuth()">Test Auth Status</button>
+    </div>
+
+    <div>
+        <h2>Database Tests</h2>
+        <button onclick="insertTestMovie()">Insert Test Movie</button>
+        <button onclick="getAllMovies()">Get All Movies (Direct SQL)</button>
+    </div>
+
+    <div>
+        <h2>Output</h2>
+        <div id="output">Results will appear here...</div>
+    </div>
+
+    <script>
+        // Configure axios
+        function setupAxios() {
+            const baseUrl = document.getElementById('baseUrl').value;
+            const authToken = document.getElementById('authToken').value;
+
+            axios.defaults.baseURL = baseUrl;
+            axios.defaults.headers.common['Accept'] = 'application/json';
+            axios.defaults.headers.common['Content-Type'] = 'application/json';
+
+            if (authToken) {
+                axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+            }
+        }
+
+        // Load token from localStorage
+        function loadFromLocalStorage() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                document.getElementById('authToken').value = token;
+                document.getElementById('output').textContent = 'Token loaded from localStorage: ' + token;
+            } else {
+                document.getElementById('output').textContent = 'No token found in localStorage';
+            }
+        }
+
+        // Test public endpoint
+        async function testPublicEndpoint() {
+            setupAxios();
+            try {
+                const response = await axios.get('/api/public-test');
+                displayOutput('Public Test Result', response);
+            } catch (error) {
+                displayError(error);
+            }
+        }
+
+        // Test movies endpoint
+        async function testMoviesEndpoint() {
+            setupAxios();
+            try {
+                const response = await axios.get('/api/movies');
+                displayOutput('Movies Endpoint Result', response);
+            } catch (error) {
+                displayError(error);
+            }
+        }
+
+        // Test movies-test endpoint
+        async function testMoviesTestEndpoint() {
+            setupAxios();
+            try {
+                const response = await axios.get('/api/movies-test');
+                displayOutput('Movies-Test Endpoint Result', response);
+            } catch (error) {
+                displayError(error);
+            }
+        }
+
+        // Test auth status
+        async function testAuth() {
+            setupAxios();
+            try {
+                const response = await axios.get('/api/user');
+                displayOutput('Auth Status', response);
+            } catch (error) {
+                displayError(error);
+            }
+        }
+
+        // Insert test movie
+        async function insertTestMovie() {
+            setupAxios();
+            try {
+                const testMovie = {
+                    title: 'Test Movie ' + Math.floor(Math.random() * 10000),
+                    genre: 'Test',
+                    release_year: 2024,
+                    description: 'This is a test movie created from the API tester'
+                };
+
+                const response = await axios.post('/api/movies', testMovie);
+                displayOutput('Insert Test Movie Result', response);
+            } catch (error) {
+                displayError(error);
+            }
+        }
+
+        // Get all movies (direct SQL)
+        async function getAllMovies() {
+            setupAxios();
+            try {
+                // This assumes you've added a special debug endpoint
+                const response = await axios.get('/api/movies-test');
+                displayOutput('All Movies (Direct SQL)', response);
+            } catch (error) {
+                displayError(error);
+            }
+        }
+
+        // Display output
+        function displayOutput(title, response) {
+            const output = document.getElementById('output');
+
+            // Format the data nicely
+            let content = `${title}:\n\n`;
+            content += `Status: ${response.status} ${response.statusText}\n\n`;
+
+            if (response.data) {
+                content += `Data: ${JSON.stringify(response.data, null, 2)}`;
+            }
+
+            output.textContent = content;
+        }
+
+        // Display error
+        function displayError(error) {
+            const output = document.getElementById('output');
+
+            let content = `Error:\n\n`;
+
+            if (error.response) {
+                // Server responded with an error status
+                content += `Status: ${error.response.status}\n`;
+                content += `Data: ${JSON.stringify(error.response.data, null, 2)}\n`;
+                content += `Headers: ${JSON.stringify(error.response.headers, null, 2)}`;
+            } else if (error.request) {
+                // Request was made but no response
+                content += `No response received\n`;
+                content += `Request: ${JSON.stringify(error.request, null, 2)}`;
+            } else {
+                // Error setting up the request
+                content += `Message: ${error.message}`;
+            }
+
+            output.textContent = content;
+        }
+    </script>
+</body>
+</html>
