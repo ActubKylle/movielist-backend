@@ -19,7 +19,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('movies', MovieController::class);
 });
 
-
+Route::middleware('auth:sanctum')->get('/genres', function () {
+    return Movie::getUniqueGenres();
+});
 
 Route::get('/movies-test', function () {
     // Get all movies from the database directly
