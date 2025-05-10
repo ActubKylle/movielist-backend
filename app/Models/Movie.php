@@ -19,6 +19,7 @@ class Movie extends Model
         'genre',
         'release_year',
         'description',
+        'image_path',
         'user_id',  // Make sure user_id is fillable!
     ];
 
